@@ -1,4 +1,4 @@
-import { ClipboardService } from '@core/Clipboardservice'; // ✅ como tú lo tienes con la "s" minúscula
+import { ClipboardService } from '@core/Clipboardservice';
 import { ClipboardWatcher } from '@core/ClipboardWatcher';
 import { SyncService } from '@core/SyncService';
 

@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
-import { ClipboardService } from '@core/Clipboardservice';
-import { MessagePayload, MessageType } from '@core/Messages';
+import { ClipboardService } from './Clipboardservice';
+import { MessagePayload, MessageType } from './Messages';
 
 export class SyncService {
   private ws?: WebSocket;
@@ -11,23 +11,25 @@ export class SyncService {
   }
 
   connect() {
+    console.log('🔌 Connecting to:', this.remoteUrl);
     this.ws = new WebSocket(this.remoteUrl);
 
     this.ws.on('open', () => {
-      console.log('Connected to:', this.remoteUrl);
+      console.log('✅ Connected to:', this.remoteUrl);
     });
 
     this.ws.on('message', async (data: WebSocket.RawData) => {
       const message: MessagePayload = JSON.parse(data.toString());
+      console.log('📨 Received message:', message);
       await this.handleMessage(message);
     });
 
     this.ws.on('close', () => {
-      console.log('Connection closed');
+      console.log('❌ Connection closed');
     });
 
     this.ws.on('error', (err) => {
-      console.error('WebSocket error:', err);
+      console.error('💥 WebSocket error:', err);
     });
   }
 
@@ -60,6 +62,7 @@ export class SyncService {
   }
 
   sendClipboardUpdate(content: string) {
+    console.log('📤 Sending clipboard update:', content.substring(0, 50) + '...');
     this.sendMessage({
       type: 'clipboard',
       data: content,

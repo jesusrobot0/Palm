@@ -1,4 +1,4 @@
-import { ClipboardService } from '@core/Clipboardservice';
+import { ClipboardService } from './Clipboardservice';
 
 export class ClipboardWatcher {
   private lastContent: string | null = null;

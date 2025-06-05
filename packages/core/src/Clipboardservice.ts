@@ -1,9 +1,10 @@
-import clipboardy from 'clipboardy';
+// @ts-ignore
+import { readText, writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 export class ClipboardService {
   async getClipboard(): Promise<string | null> {
     try {
-      return await clipboardy.read();
+      return await readText();
     } catch (err) {
       console.error('Error reading clipboard:', err);
       return null;
@@ -12,7 +13,7 @@ export class ClipboardService {
 
   async setClipboard(content: string): Promise<void> {
     try {
-      await clipboardy.write(content);
+      await writeText(content);
     } catch (err) {
       console.error('Error writing clipboard:', err);
     }
