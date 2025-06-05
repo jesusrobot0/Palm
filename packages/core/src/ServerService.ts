@@ -1,14 +1,12 @@
 import WebSocket, { WebSocketServer } from 'ws';
-
-type MessagePayload = {
-  type: string;
-  data: any;
-};
+import { MessagePayload } from './Messages';
 
 export class ServerService {
-  private wss: WebSocketServer;
+  private wss?: WebSocketServer;
 
-  constructor(private readonly port: number = 8080) {
+  constructor(private readonly port: number = 8080) {}
+
+  start() {
     this.wss = new WebSocketServer({ port: this.port });
 
     this.wss.on('listening', () => {
@@ -21,8 +19,6 @@ export class ServerService {
       ws.on('message', (data: WebSocket.RawData) => {
         const message: MessagePayload = JSON.parse(data.toString());
         console.log('Received message from client:', message);
-
-        // Aquí podríamos reenviar el mensaje a otros clientes si hiciera falta
       });
 
       ws.on('close', () => {
@@ -37,7 +33,7 @@ export class ServerService {
 
   broadcast(message: MessagePayload) {
     const msg = JSON.stringify(message);
-    this.wss.clients.forEach((client) => {
+    this.wss?.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(msg);
       }
