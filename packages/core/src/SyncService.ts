@@ -1,10 +1,6 @@
 import WebSocket from 'ws';
 import { ClipboardService } from '@core/Clipboardservice';
-
-type MessagePayload = {
-  type: string;
-  data: any;
-};
+import { MessagePayload, MessageType } from '@core/Messages';
 
 export class SyncService {
   private ws?: WebSocket;
@@ -23,12 +19,7 @@ export class SyncService {
 
     this.ws.on('message', async (data: WebSocket.RawData) => {
       const message: MessagePayload = JSON.parse(data.toString());
-      console.log('Received message:', message);
-
-      if (message.type === 'clipboard') {
-        await this.clipboard.setClipboard(message.data);
-        console.log('Clipboard updated');
-      }
+      await this.handleMessage(message);
     });
 
     this.ws.on('close', () => {
@@ -38,6 +29,34 @@ export class SyncService {
     this.ws.on('error', (err) => {
       console.error('WebSocket error:', err);
     });
+  }
+
+  private async handleMessage(message: MessagePayload) {
+    const handlers: Record<MessageType, (data: any) => Promise<void> | void> = {
+      clipboard: async (data: string) => {
+        await this.clipboard.setClipboard(data);
+        console.log('Clipboard updated');
+      },
+      ping: (data) => {
+        console.log('Received ping:', data);
+      },
+      pairing: (data) => {
+        console.log('Received pairing:', data);
+      },
+      'sync-request': (data) => {
+        console.log('Received sync-request:', data);
+      },
+      'sync-response': (data) => {
+        console.log('Received sync-response:', data);
+      }
+    };
+
+    const handler = handlers[message.type];
+    if (handler) {
+      await handler(message.data);
+    } else {
+      console.warn('Unknown message type:', message.type);
+    }
   }
 
   sendClipboardUpdate(content: string) {
