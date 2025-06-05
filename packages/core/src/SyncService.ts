@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { ClipboardService } from '@core/Clipboardservice';
 
 type MessagePayload = {
   type: string;
@@ -7,8 +8,11 @@ type MessagePayload = {
 
 export class SyncService {
   private ws?: WebSocket;
+  private clipboard: ClipboardService;
 
-  constructor(private readonly remoteUrl: string) {}
+  constructor(private readonly remoteUrl: string) {
+    this.clipboard = new ClipboardService();
+  }
 
   connect() {
     this.ws = new WebSocket(this.remoteUrl);
@@ -17,10 +21,14 @@ export class SyncService {
       console.log('Connected to:', this.remoteUrl);
     });
 
-    this.ws.on('message', (data: WebSocket.RawData) => {
+    this.ws.on('message', async (data: WebSocket.RawData) => {
       const message: MessagePayload = JSON.parse(data.toString());
       console.log('Received message:', message);
-      // Aquí luego llamaremos a ClipboardService para actualizar clipboard
+
+      if (message.type === 'clipboard') {
+        await this.clipboard.setClipboard(message.data);
+        console.log('Clipboard updated');
+      }
     });
 
     this.ws.on('close', () => {
@@ -32,7 +40,14 @@ export class SyncService {
     });
   }
 
-  sendMessage(message: MessagePayload) {
+  sendClipboardUpdate(content: string) {
+    this.sendMessage({
+      type: 'clipboard',
+      data: content,
+    });
+  }
+  
+  private sendMessage(message: MessagePayload) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
